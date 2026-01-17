@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>OLOROMBA</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js"></script>
+</head>
+<body>
+    <!-- 开始界面 -->
+    <div id="startScreen" class="screen active">
+        <div class="start-container">
+            <h1 class="game-title">OLOROMBA</h1>
+            <div class="start-buttons">
+                <button id="startGameBtn" class="menu-btn">
+                    <i class="fas fa-play"></i> 开始游戏
+                </button>
+                <button id="howToPlayBtn" class="menu-btn">
+                    <i class="fas fa-question-circle"></i> 玩法介绍
+                </button>
+                <button id="settingsBtn" class="menu-btn">
+                    <i class="fas fa-cog"></i> 设置
+                </button>
+                <button id="exitGameBtn" class="menu-btn">
+                    <i class="fas fa-power-off"></i> 退出游戏
+                </button>
+            </div>
+            <div class="version">版本 0.5</div>
+        </div>
+    </div>
+    
+    <!-- 帮助界面 -->
+    <div id="helpScreen" class="screen">
+        <div class="help-container">
+            <h2><i class="fas fa-question-circle"></i> 游戏玩法</h2>
+            <div class="help-content">
+                <div class="help-section">
+                    <h3><i class="fas fa-crosshairs"></i> 基本规则</h3>
+                    <p>1. 点击或长按网格发射彩色弹药</p>
+                    <p>2. 发射台颜色 = 弹药颜色</p>
+                    <p>3. 破坏相同颜色方块: +7分</p>
+                    <p>4. 白色方块可反弹所有颜色弹药</p>
+                    <p>5. 击中终点旗帜完成关卡</p>
+                </div>
+                <div class="help-section">
+                    <h3><i class="fas fa-bomb"></i> 特殊物品</h3>
+                    <p><span class="bomb-icon">💣</span> <strong>炸弹</strong>: 触碰立即损失1点生命</p>
+                    <p><span class="chest-icon">🗃️</span> <strong>宝箱</strong>: 触碰获得200金币</p>
+                    <p><span class="flag-icon">🏁</span> <strong>终点旗帜</strong>: 触碰完成关卡</p>
+                </div>
+                <div class="help-section">
+                    <h3><i class="fas fa-trophy"></i> 胜利条件</h3>
+                    <p>1. 在生命和弹药耗尽前到达终点</p>
+                    <p>2. 满足关卡积分要求</p>
+                    <p>3. 避开炸弹，收集宝箱</p>
+                </div>
+            </div>
+            <button id="backFromHelpBtn" class="back-btn">
+                <i class="fas fa-arrow-left"></i> 返回
+            </button>
+        </div>
+    </div>
+    
+    <!-- 设置界面 -->
+    <div id="settingsScreen" class="screen">
+        <div class="settings-container">
+            <h2><i class="fas fa-cog"></i> 设置</h2>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label for="bgmVolume">背景音乐音量</label>
+                    <div class="volume-control">
+                        <i class="fas fa-volume-down"></i>
+                        <input type="range" id="bgmVolume" min="0" max="100" value="50">
+                        <i class="fas fa-volume-up"></i>
+                        <span id="bgmValue">50%</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label for="sfxVolume">音效音量</label>
+                    <div class="volume-control">
+                        <i class="fas fa-volume-down"></i>
+                        <input type="range" id="sfxVolume" min="0" max="100" value="70">
+                        <i class="fas fa-volume-up"></i>
+                        <span id="sfxValue">70%</span>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <label for="vibration">震动反馈</label>
+                    <label class="switch">
+                        <input type="checkbox" id="vibration" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label for="particles">粒子效果</label>
+                    <label class="switch">
+                        <input type="checkbox" id="particles" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <button id="backFromSettingsBtn" class="back-btn">
+                <i class="fas fa-arrow-left"></i> 返回
+            </button>
+        </div>
+    </div>
+    
+    <!-- 游戏界面 -->
+    <div id="gameScreen" class="screen">
+        <div class="game-header">
+            <div class="level-info">
+                <span id="currentLevel">关卡: 1</span>
+                <span id="scoreRequirement">目标: 0分</span>
+            </div>
+            <div class="player-stats">
+                <div class="stat">
+                    <i class="fas fa-heart"></i>
+                    <span id="lives">3</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-bullseye"></i>
+                    <span id="ammo">100</span>
+                </div>
+                <div class="stat">
+                    <i class="fas fa-coins"></i>
+                    <span id="money">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-container">
+            <div class="score-display">
+                <div class="score-value" id="score">0</div>
+            </div>
+            <div class="grid-container" id="gridContainer">
+                <div class="grid" id="grid"></div>
+            </div>
+            <div class="instructions">
+                点击或长按发射 • 弹药颜色需匹配方块颜色
+            </div>
+        </div>
+        
+        <!-- 暂停按钮 -->
+        <div class="pause-btn" id="pauseBtn">
+            <i class="fas fa-pause"></i>
+        </div>
+        
+        <!-- 声音控制按钮 -->
+        <div class="sound-toggle" id="soundToggle">
+            <i class="fas fa-volume-up"></i>
+        </div>
+    </div>
+    
+    <!-- 暂停菜单 -->
+    <div id="pauseMenu" class="overlay">
+        <div class="pause-popup">
+            <h2>游戏暂停</h2>
+            <div class="pause-buttons">
+                <button id="resumeBtn" class="pause-menu-btn">
+                    <i class="fas fa-play"></i> 继续游戏
+                </button>
+                <button id="restartLevelBtn" class="pause-menu-btn">
+                    <i class="fas fa-redo"></i> 重新开始
+                </button>
+                <button id="quitToMenuBtn" class="pause-menu-btn">
+                    <i class="fas fa-home"></i> 返回主菜单
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 结算界面 -->
+    <div id="resultScreen" class="overlay">
+        <div class="result-popup">
+            <div id="resultTitle" class="result-title">🎉 关卡完成！ 🎉</div>
+            <div class="result-stats">
+                <div class="stat-row">
+                    <span>获得积分:</span>
+                    <span id="resultScore">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>宝箱奖励:</span>
+                    <span id="chestBonus">+0</span>
+                </div>
+                <div class="stat-row total">
+                    <span>本关收入:</span>
+                    <span id="totalMoney">0</span>
+                </div>
+                <div class="stat-row requirement">
+                    <span>积分要求:</span>
+                    <span id="requiredScore">0</span>
+                </div>
+                <div id="requirementStatus" class="status success">
+                    <i class="fas fa-check-circle"></i> 目标已达成
+                </div>
+            </div>
+            <button id="continueToShopBtn" class="result-btn">
+                前往商店 <i class="fas fa-shopping-cart"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- 商店界面 -->
+    <div id="shopScreen" class="overlay">
+        <div class="shop-popup">
+            <div class="shop-header">
+                <h2><i class="fas fa-shopping-cart"></i> 道具商店</h2>
+                <div class="shop-money">
+                    <i class="fas fa-coins"></i> 金币: <span id="shopMoney">0</span>
+                </div>
+            </div>
+            
+            <div class="shop-items" id="shopItems">
+                <!-- 道具将动态生成 -->
+            </div>
+            
+            <div class="shop-controls">
+                <button id="rerollBtn" class="shop-control-btn">
+                    <i class="fas fa-sync-alt"></i> 刷新商品 (<span id="rerollCost">150</span>金币)
+                </button>
+                <button id="skipShopBtn" class="shop-control-btn skip">
+                    <i class="fas fa-forward"></i> 跳过商店
+                </button>
+            </div>
+            
+            <div class="shop-info">
+                <p>每关只能购买一件道具，效果持续整局游戏</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 失败界面 -->
+    <div id="failScreen" class="overlay">
+        <div class="fail-popup">
+            <div class="fail-title">
+                <i class="fas fa-skull-crossbones"></i> 游戏失败
+            </div>
+            <div class="fail-stats">
+                <div class="fail-stat">
+                    <span>最终关卡:</span>
+                    <span id="failLevel">1</span>
+                </div>
+                <div class="fail-stat">
+                    <span>获得金币:</span>
+                    <span id="failMoney">0</span>
+                </div>
+                <div class="fail-stat">
+                    <span>最高连击:</span>
+                    <span id="failCombo">0</span>
+                </div>
+            </div>
+            <div id="failReason" class="fail-reason">
+                生命值耗尽
+            </div>
+            <button id="backToStartBtn" class="fail-btn">
+                <i class="fas fa-home"></i> 返回开始界面
+            </button>
+        </div>
+    </div>
+    
+    <!-- 通关界面（第15关后） -->
+    <div id="completionScreen" class="overlay">
+        <div class="completion-popup">
+            <div class="completion-title">
+                <i class="fas fa-trophy"></i> 恭喜通关！
+            </div>
+            <div class="completion-message">
+                <p>恭喜通过全部15个关卡！</p>
+                <p>继续游戏将进入无限模式，挑战更高的难度和积分！</p>
+            </div>
+            <div class="completion-buttons">
+                <button id="backToMenuCompletionBtn" class="completion-btn">
+                    <i class="fas fa-home"></i> 回到开始界面
+                </button>
+                <button id="startInfiniteModeBtn" class="completion-btn infinite">
+                    <i class="fas fa-infinity"></i> 无限模式
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载脚本 -->
+    <script src="audio.js"></script>
+    <script src="levels.js"></script>
+    <script src="shop.js"></script>
+    <script src="game.js"></script>
+    <script src="ui.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

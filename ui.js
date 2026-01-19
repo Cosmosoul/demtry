@@ -232,7 +232,7 @@ class UIManager {
         // 重置游戏
         levelSystem.reset();
         shopSystem.resetGame();
-        gameCore.stopGameLoop(); // 确保停止游戏循环
+        gameCore.stopGameLoop();
         
         // 切换到开始界面
         this.showScreen('startScreen');
@@ -328,8 +328,10 @@ class UIManager {
         // 解锁新道具
         shopSystem.unlockNewItems(levelSystem.currentLevel);
         
-        // 重置游戏状态，保留金钱
+        // 重置游戏状态，保留金钱和永久道具效果
+        const money = gameCore.state.money;
         gameCore.resetGameState(false);
+        gameCore.state.money = money;
         
         // 确保游戏处于活跃状态
         gameCore.state.active = true;
@@ -448,11 +450,13 @@ window.onShopItemBuy = function(itemId) {
         // 扣除金币
         gameCore.state.money -= result.price;
         
-        // 重要：重新应用所有已购买道具的效果
-        gameCore.applyShopEffects();
-        
         // 更新UI显示弹药数量
         gameCore.updateUI();
+        
+        // 显示道具效果提示
+        if (result.item && typeof gameCore.showItemEffectMessage === 'function') {
+            gameCore.showItemEffectMessage(result.item.name);
+        }
         
         // 隐藏商店界面
         document.getElementById('shopScreen').style.display = 'none';
@@ -461,7 +465,10 @@ window.onShopItemBuy = function(itemId) {
         audioManager.playPurchase();
         
         // 进入下一关
-        uiManager.nextLevel();
+        setTimeout(() => {
+            uiManager.nextLevel();
+        }, 1500); // 给玩家时间看效果提示
+        
     } else {
         alert(result.message);
     }

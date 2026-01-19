@@ -1,4 +1,4 @@
-// 游戏核心逻辑
+// 游戏核心逻辑 - 完整文件
 class GameCore {
     constructor() {
         // 游戏配置
@@ -7,8 +7,8 @@ class GameCore {
         this.COLORS = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple', 'white'];
         
         // 弹药速度配置 - 减慢速度（原为8，现改为5）
-        this.PROJECTILE_SPEED = 5; // 原为8，减慢约37.5%
-        this.EXPLOSION_PROJECTILE_SPEED = 5; // 爆炸产生的弹药速度与普通弹药一样
+        this.PROJECTILE_SPEED = 5;
+        this.EXPLOSION_PROJECTILE_SPEED = 5;
         
         // 游戏状态
         this.state = {
@@ -21,7 +21,8 @@ class GameCore {
             level: 1,
             hasTreasure: false,
             hasFlag: false,
-            nextColor: this.COLORS[Math.floor(Math.random() * this.COLORS.length)],
+            currentProjectileColors: ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple'], // 默认全部颜色
+            nextColor: this.getRandomProjectileColor(['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple']),
             projectiles: [],
             explosions: [],
             maze: [],
@@ -30,11 +31,12 @@ class GameCore {
                 treasure: null,
                 flag: null
             },
+            numberBlocks: [], // 数字方块数组
             isMouseDown: false,
             shootInterval: null,
             lastShootTime: 0,
             shootDelay: 150,
-            whiteChance: 0, // 初始为0，无白色子弹
+            whiteChance: 0,
             splitCount: 1,
             splitDirections: 3,
             scoreMultiplier: 1.0,
@@ -45,7 +47,25 @@ class GameCore {
             rapidFire: false,
             whitePowerful: false,
             moneyMultiplier: 1.0,
-            chestCollected: false
+            comboBonus: 0,
+            ammoToScore: false,
+            moneyToScore: false,
+            comboMoney: 0,
+            reduceBombs: 0,
+            whiteChanceIncrease: 0,
+            chestCollected: false,
+            // 一次性道具效果
+            oneTimeBombImmunity: 0,
+            oneTimeAutoWin: false,
+            oneTimeWhiteChance: 0,
+            oneTimeInfiniteAmmo: false,
+            oneTimeMaxSplit: false,
+            oneTimeRapidFire: false,
+            oneTimeRemoveNumbers: false,
+            oneTimeNoBombs: false,
+            oneTimeHalfScoreReq: false,
+            oneTimeUniversalColor: false,
+            oneTimeGodMode: false
         };
         
         // 游戏循环控制
@@ -66,6 +86,35 @@ class GameCore {
         
         // 初始化
         this.initElements();
+    }
+    
+    // 获取随机弹珠颜色（基于关卡允许的颜色）
+    getRandomProjectileColor(availableColors) {
+        if (!availableColors || availableColors.length === 0) {
+            // 默认使用全部颜色（不含白色）
+            return this.COLORS[Math.floor(Math.random() * 7)];
+        }
+        
+        // 从可用颜色中随机选择
+        return availableColors[Math.floor(Math.random() * availableColors.length)];
+    }
+    
+    // 获取随机方块颜色（基于关卡允许的颜色，白色单独处理）
+    getRandomBlockColor(availableColors, isWhiteAllowed = true) {
+        if (!availableColors || availableColors.length === 0) {
+            // 默认使用全部颜色
+            const colors = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // 过滤掉白色（白色方块数量单独控制）
+        const nonWhiteColors = availableColors.filter(color => color !== 'white');
+        
+        if (nonWhiteColors.length === 0) {
+            return 'red'; // 默认红色
+        }
+        
+        return nonWhiteColors[Math.floor(Math.random() * nonWhiteColors.length)];
     }
     
     // 初始化DOM元素引用
@@ -113,8 +162,13 @@ class GameCore {
     
     resetGameState(resetMoney = false) {
         const levelInfo = levelSystem.getLevelDisplayInfo();
+        const level = levelSystem.getCurrentLevel();
         
-        // 计算金钱：如果resetMoney为true，则重置为0，否则保留当前金钱（如果当前没有金钱，则为0）
+        // 获取当前关卡允许的颜色
+        const availableProjectileColors = level.availableProjectileColors || ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple'];
+        const availableBlockColors = level.availableBlockColors || ['white', 'red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'purple'];
+        
+        // 计算金钱：如果resetMoney为true，则重置为0，否则保留当前金钱
         const money = resetMoney ? 0 : (this.state && this.state.money ? this.state.money : 0);
 
         this.PROJECTILE_SPEED = 5;
@@ -130,7 +184,8 @@ class GameCore {
             level: levelInfo.number,
             hasTreasure: false,
             hasFlag: false,
-            nextColor: this.COLORS[Math.floor(Math.random() * this.COLORS.length)],
+            currentProjectileColors: availableProjectileColors,
+            nextColor: this.getRandomProjectileColor(availableProjectileColors),
             projectiles: [],
             explosions: [],
             maze: [],
@@ -139,11 +194,12 @@ class GameCore {
                 treasure: null,
                 flag: null
             },
+            numberBlocks: [],
             isMouseDown: false,
             shootInterval: null,
             lastShootTime: 0,
             shootDelay: 150,
-            whiteChance: 0, // 初始为0，无白色子弹
+            whiteChance: 0,
             splitCount: 1,
             splitDirections: 3,
             scoreMultiplier: 1.0,
@@ -152,13 +208,28 @@ class GameCore {
             infiniteAmmo: false,
             infiniteLife: false,
             rapidFire: false,
-            speed:5,
             whitePowerful: false,
             moneyMultiplier: 1.0,
-            chestCollected: false
+            comboBonus: 0,
+            ammoToScore: false,
+            moneyToScore: false,
+            comboMoney: 0,
+            reduceBombs: 0,
+            whiteChanceIncrease: 0,
+            chestCollected: false,
+            // 一次性道具效果
+            oneTimeBombImmunity: 0,
+            oneTimeAutoWin: false,
+            oneTimeWhiteChance: 0,
+            oneTimeInfiniteAmmo: false,
+            oneTimeMaxSplit: false,
+            oneTimeRapidFire: false,
+            oneTimeRemoveNumbers: false,
+            oneTimeNoBombs: false,
+            oneTimeHalfScoreReq: false,
+            oneTimeUniversalColor: false,
+            oneTimeGodMode: false
         };
-        
-
         
         // 更新关卡显示
         this.elements.currentLevel.textContent = `关卡: ${levelInfo.number}`;
@@ -172,7 +243,7 @@ class GameCore {
         this.calculateCellSize();
         
         // 生成迷宫
-        this.generateMaze();
+        this.generateMaze(availableBlockColors);
         
         // 更新发射台颜色
         this.updateLauncherColor();
@@ -180,11 +251,14 @@ class GameCore {
         // 应用商店道具效果
         this.applyShopEffects();
         
+        // 应用一次性道具效果
+        this.applyOneTimeEffects();
+        
         // 更新UI显示
         this.updateUI();
     }
     
-    // 在 game.js 的 applyShopEffects 方法中添加调试信息
+    // 应用商店道具效果
     applyShopEffects() {
         const effects = shopSystem.getItemEffects();
         
@@ -200,7 +274,7 @@ class GameCore {
         this.state.bombImmunityUsed = 0;
         
         // 白色子弹概率
-        this.state.whiteChance = effects.whiteChance;
+        this.state.whiteChance = effects.whiteChance + effects.whiteChanceIncrease;
         
         // 白色子弹强化
         this.state.whitePowerful = effects.whitePowerful;
@@ -214,14 +288,20 @@ class GameCore {
         this.state.infiniteLife = effects.infiniteLife;
         this.state.rapidFire = effects.rapidFire;
         if (this.state.rapidFire) {
-            this.state.shootDelay = 150; // 连射模式更快
+            this.state.shootDelay = 150;
         } else {
-            this.state.shootDelay = 800; // 普通模式
+            this.state.shootDelay = 800;
         }
         
         // 经济效果
         this.state.scoreMultiplier = Math.max(1.0, effects.scoreMultiplier);
         this.state.moneyMultiplier = Math.max(1.0, effects.moneyMultiplier);
+        this.state.comboBonus = effects.comboBonus;
+        this.state.ammoToScore = effects.ammoToScore;
+        this.state.moneyToScore = effects.moneyToScore;
+        this.state.comboMoney = effects.comboMoney;
+        this.state.reduceBombs = effects.reduceBombs;
+        this.state.whiteChanceIncrease = effects.whiteChanceIncrease;
         
         // 如果有无限制药，设置弹药为999
         if (this.state.infiniteAmmo) {
@@ -230,7 +310,50 @@ class GameCore {
         
         console.log('最终弹药值:', this.state.ammo);
     }
-
+    
+    // 应用一次性道具效果
+    applyOneTimeEffects() {
+        const effects = shopSystem.getOneTimeEffects();
+        
+        // 应用一次性道具效果
+        this.state.oneTimeBombImmunity = effects.bombImmunity;
+        this.state.oneTimeAutoWin = effects.autoWin;
+        this.state.oneTimeWhiteChance = effects.whiteChance;
+        this.state.oneTimeInfiniteAmmo = effects.infiniteAmmo;
+        this.state.oneTimeMaxSplit = effects.maxSplit;
+        this.state.oneTimeRapidFire = effects.rapidFire;
+        this.state.oneTimeRemoveNumbers = effects.removeNumbers;
+        this.state.oneTimeNoBombs = effects.noBombs;
+        this.state.oneTimeHalfScoreReq = effects.halfScoreReq;
+        this.state.oneTimeUniversalColor = effects.universalColor;
+        this.state.oneTimeGodMode = effects.godMode;
+        
+        // 如果有无敌体验卡，应用所有效果
+        if (this.state.oneTimeGodMode) {
+            this.state.oneTimeRapidFire = true;
+            this.state.oneTimeInfiniteAmmo = true;
+            this.state.oneTimeBombImmunity = 999;
+        }
+        
+        // 合并一次性道具效果到状态
+        if (this.state.oneTimeInfiniteAmmo) {
+            this.state.ammo = 999;
+        }
+        
+        if (this.state.oneTimeRapidFire) {
+            this.state.shootDelay = 150;
+        }
+        
+        if (this.state.oneTimeMaxSplit) {
+            this.state.splitCount = 5;
+            this.state.splitDirections = 8;
+        }
+        
+        if (this.state.oneTimeWhiteChance > 0) {
+            this.state.whiteChance = this.state.oneTimeWhiteChance;
+        }
+    }
+    
     // 显示道具效果提示
     showItemEffectMessage(itemName) {
         const message = document.createElement('div');
@@ -260,7 +383,6 @@ class GameCore {
             message.remove();
         }, 2000);
     }
-
     
     // 创建网格
     createGrid() {
@@ -377,7 +499,7 @@ class GameCore {
     }
     
     // 生成迷宫
-    generateMaze() {
+    generateMaze(availableBlockColors) {
         const level = levelSystem.getCurrentLevel();
         
         // 清空之前的方块
@@ -396,12 +518,20 @@ class GameCore {
         this.state.specialCells.bombs = [];
         this.state.specialCells.treasure = null;
         this.state.specialCells.flag = null;
+        this.state.numberBlocks = [];
         this.state.hasTreasure = false;
         this.state.hasFlag = false;
         this.state.chestCollected = false;
         
-        // 放置3个炸弹
-        for (let i = 0; i < 3; i++) {
+        // 计算炸弹数量（考虑道具效果）
+        let actualBombs = level.bombs || 3;
+        actualBombs = Math.max(0, actualBombs - this.state.reduceBombs);
+        if (this.state.oneTimeNoBombs) {
+            actualBombs = 0;
+        }
+        
+        // 放置炸弹
+        for (let i = 0; i < actualBombs; i++) {
             this.placeSpecialItem('bomb');
         }
         
@@ -415,6 +545,8 @@ class GameCore {
         const totalWalls = level.walls || 90;
         const whiteWalls = level.whiteWalls || 0;
         let placed = 0;
+        let numberBlocksCount = 0;
+        const maxNumberBlocks = Math.floor(totalWalls * (level.numberBlockRatio || 0));
         
         while (placed < totalWalls) {
             const rx = Math.floor(Math.random() * this.GRID_SIZE);
@@ -426,20 +558,62 @@ class GameCore {
                 if (placed < whiteWalls) {
                     color = 'white';
                 } else {
-                    // 白色方块概率1/8，其他颜色随机
-                    color = Math.random() < 0.125 ? 'white' : 
-                           this.COLORS[Math.floor(Math.random() * 7)];
+                    // 从关卡允许的颜色中随机选择（排除白色）
+                    color = this.getRandomBlockColor(availableBlockColors, false);
                 }
                 
-                this.state.maze[ry][rx].type = 'color';
-                this.state.maze[ry][rx].color = color;
-                this.state.maze[ry][rx].element.className = `cell color ${color}`;
+                // 检查是否为数字方块（从第9关开始）
+                let isNumberBlock = false;
+                if (level.hasNumberBlocks && numberBlocksCount < maxNumberBlocks) {
+                    isNumberBlock = Math.random() < (level.numberBlockRatio || 0);
+                }
+                
+                if (isNumberBlock && color !== 'white') {
+                    // 创建数字方块
+                    const number = Math.floor(Math.random() * (level.numberRange.max - level.numberRange.min + 1)) + level.numberRange.min;
+                    this.state.maze[ry][rx].type = 'number';
+                    this.state.maze[ry][rx].color = color;
+                    this.state.maze[ry][rx].number = number;
+                    this.state.maze[ry][rx].initialNumber = number;
+                    this.state.maze[ry][rx].element.className = `cell color number ${color}`;
+                    this.state.maze[ry][rx].element.innerHTML = `<span class="number-text">${number}</span>`;
+                    this.state.maze[ry][rx].element.style.fontSize = `${Math.max(10, this.CELL_SIZE/3)}px`;
+                    this.state.numberBlocks.push({x: rx, y: ry});
+                    numberBlocksCount++;
+                } else {
+                    // 普通彩色方块
+                    this.state.maze[ry][rx].type = 'color';
+                    this.state.maze[ry][rx].color = color;
+                    this.state.maze[ry][rx].element.className = `cell color ${color}`;
+                }
                 placed++;
             }
         }
         
+        // 如果有一键移除数字道具，移除所有数字
+        if (this.state.oneTimeRemoveNumbers) {
+            this.removeAllNumberBlocks();
+        }
+        
         // 确保从发射台到终点的路径
         this.ensurePathToFlag();
+    }
+    
+    // 移除所有数字方块
+    removeAllNumberBlocks() {
+        for (let i = this.state.numberBlocks.length - 1; i >= 0; i--) {
+            const block = this.state.numberBlocks[i];
+            const x = block.x;
+            const y = block.y;
+            
+            // 将数字方块转换为普通方块
+            this.state.maze[y][x].type = 'color';
+            this.state.maze[y][x].element.className = `cell color ${this.state.maze[y][x].color}`;
+            this.state.maze[y][x].element.innerHTML = '';
+            
+            // 从数字方块数组中移除
+            this.state.numberBlocks.splice(i, 1);
+        }
     }
     
     // 放置特殊物品
@@ -551,12 +725,12 @@ class GameCore {
         if (tx === launcherX && ty === launcherY) return;
         
         // 检查弹药
-        if (!this.state.infiniteAmmo && this.state.ammo <= 0) {
+        if (!this.state.infiniteAmmo && !this.state.oneTimeInfiniteAmmo && this.state.ammo <= 0) {
             return;
         }
         
         // 消耗弹药
-        if (!this.state.infiniteAmmo) {
+        if (!this.state.infiniteAmmo && !this.state.oneTimeInfiniteAmmo) {
             this.state.ammo--;
             this.updateUI();
         }
@@ -564,13 +738,20 @@ class GameCore {
         // 使用当前颜色发射
         const color = this.state.nextColor;
         
-        // 选择下一个颜色（考虑白色子弹概率）
+        // 选择下一个颜色（考虑白色子弹概率和一次性道具）
         let nextColor;
-        if (Math.random() < this.state.whiteChance) {
+        const whiteChance = this.state.whiteChance + this.state.oneTimeWhiteChance;
+        
+        // 检查是否允许白色弹珠
+        const canUseWhite = this.state.whiteChance > 0 || this.state.oneTimeWhiteChance > 0;
+        
+        if (canUseWhite && Math.random() < whiteChance) {
             nextColor = 'white';
         } else {
-            nextColor = this.COLORS[Math.floor(Math.random() * 7)];
+            // 从关卡允许的颜色中随机选择
+            nextColor = this.getRandomProjectileColor(this.state.currentProjectileColors);
         }
+        
         this.state.nextColor = nextColor;
         this.updateLauncherColor();
         
@@ -611,7 +792,7 @@ class GameCore {
         const dx = tx - sx;
         const dy = ty - sy;
         const dist = Math.sqrt(dx*dx + dy*dy);
-        const speed = this.PROJECTILE_SPEED; // 使用减慢后的速度
+        const speed = this.PROJECTILE_SPEED;
         
         this.state.projectiles.push({
             element: proj,
@@ -620,7 +801,7 @@ class GameCore {
             vx: dx/dist * speed,
             vy: dy/dist * speed,
             color: color,
-            life: 180, // 增加弹药寿命以补偿速度减慢
+            life: 180,
             maxLife: 180,
             createdAt: Date.now(),
             fading: false,
@@ -724,14 +905,21 @@ class GameCore {
             if (gx >= 0 && gx < this.GRID_SIZE && gy >= 0 && gy < this.GRID_SIZE) {
                 const cell = this.state.maze[gy][gx];
                 
-                if (cell.type === 'color') {
-                    // 检查颜色是否匹配
+                if (cell.type === 'color' || cell.type === 'number') {
+                    // 检查颜色是否匹配（考虑白色子弹强化和一次性万能颜色道具）
                     const isMatch = cell.color === p.color || 
-                                   (p.color === 'white' && this.state.whitePowerful);
+                                   (p.color === 'white' && this.state.whitePowerful) ||
+                                   this.state.oneTimeUniversalColor;
                     
                     if (isMatch) {
-                        // 颜色匹配，爆炸
-                        this.explode(gx, gy, p.color);
+                        // 颜色匹配，处理方块
+                        if (cell.type === 'number') {
+                            // 数字方块：减少数字
+                            this.hitNumberBlock(gx, gy, p.color);
+                        } else {
+                            // 普通方块：爆炸
+                            this.explode(gx, gy, p.color);
+                        }
                         p.element.remove();
                         this.state.projectiles.splice(i, 1);
                         continue;
@@ -756,6 +944,7 @@ class GameCore {
         // 检查弹药耗尽且未到达终点的情况
         if (this.state.active && 
             !this.state.infiniteAmmo && 
+            !this.state.oneTimeInfiniteAmmo && 
             this.state.ammo <= 0 && 
             !this.state.hasFlag && 
             this.state.projectiles.length === 0) {
@@ -784,6 +973,39 @@ class GameCore {
         
         // 继续游戏循环
         this.gameLoopId = requestAnimationFrame(() => this.gameLoop());
+    }
+    
+    // 击中数字方块
+    hitNumberBlock(x, y, color) {
+        const cell = this.state.maze[y][x];
+        
+        // 播放击中音效
+        audioManager.playExplosion();
+        
+        // 减少数字
+        cell.number--;
+        
+        // 更新显示
+        cell.element.innerHTML = `<span class="number-text">${cell.number}</span>`;
+        
+        // 闪烁效果
+        cell.element.style.animation = 'none';
+        setTimeout(() => {
+            cell.element.style.animation = 'cellPulse 0.5s infinite alternate';
+        }, 10);
+        
+        // 检查数字是否归零
+        if (cell.number <= 0) {
+            // 数字归零，触发爆炸
+            this.explode(x, y, color);
+        } else {
+            // 只是减少数字，播放小的击中效果
+            this.createHitEffect(
+                x * this.CELL_SIZE + this.CELL_SIZE/2,
+                y * this.CELL_SIZE + this.CELL_SIZE/2,
+                this.getColorHex(color)
+            );
+        }
     }
     
     // 检查特殊物品击中
@@ -867,8 +1089,9 @@ class GameCore {
         // 移除炸弹
         this.removeBomb(x, y);
         
-        // 检查炸弹免疫
-        if (this.state.infiniteLife || this.state.bombImmunityUsed < this.state.bombImmunity) {
+        // 检查炸弹免疫（考虑一次性道具）
+        const totalImmunity = this.state.bombImmunity + this.state.oneTimeBombImmunity;
+        if (this.state.infiniteLife || this.state.bombImmunityUsed < totalImmunity) {
             this.state.bombImmunityUsed++;
             return; // 免疫本次伤害
         }
@@ -1004,13 +1227,13 @@ class GameCore {
         }
         
         // 添加随机扰动（减小扰动幅度）
-        p.vx += (Math.random() - 0.5) * 2; // 原为3，减小扰动
-        p.vy += (Math.random() - 0.5) * 2; // 原为3，减小扰动
+        p.vx += (Math.random() - 0.5) * 2;
+        p.vy += (Math.random() - 0.5) * 2;
         
         // 重新归一化速度（使用减慢后的速度）
         const speed = Math.sqrt(p.vx*p.vx + p.vy*p.vy);
-        p.vx = (p.vx / speed) * this.PROJECTILE_SPEED; // 使用减慢后的速度
-        p.vy = (p.vy / speed) * this.PROJECTILE_SPEED; // 使用减慢后的速度
+        p.vx = (p.vx / speed) * this.PROJECTILE_SPEED;
+        p.vy = (p.vy / speed) * this.PROJECTILE_SPEED;
         
         return p.life > 0;
     }
@@ -1055,18 +1278,35 @@ class GameCore {
             life: 1
         });
         
-        // 移除彩色方块
-        this.state.maze[y][x].type = 'empty';
-        this.state.maze[y][x].element.className = 'cell';
+        // 移除彩色方块或数字方块
+        const cell = this.state.maze[y][x];
+        if (cell.type === 'number') {
+            // 从数字方块数组中移除
+            this.state.numberBlocks = this.state.numberBlocks.filter(
+                block => !(block.x === x && block.y === y)
+            );
+        }
+        
+        cell.type = 'empty';
+        cell.element.className = 'cell';
+        cell.element.innerHTML = '';
         
         // 增加分数
-        const baseScore = 7
-        const comboBonus = Math.min(this.state.combo, 1) * 0;
+        const baseScore = 7;
+        const comboBonus = this.state.comboBonus;
         const totalScore = Math.floor((baseScore + comboBonus) * this.state.scoreMultiplier);
         this.addScore(totalScore);
         
         // 增加连击
         this.state.combo++;
+        
+        // 如果有关卡连击金钱奖励
+        if (this.state.comboMoney > 0) {
+            const moneyGain = this.state.comboMoney;
+            this.state.money += moneyGain;
+            this.updateUI();
+            this.showMoneyGain(moneyGain);
+        }
         
         // 链式反应
         const directions = [
@@ -1074,28 +1314,42 @@ class GameCore {
             [0, 1], [-1, 1], [-1, 0], [-1, -1]
         ];
         
-        // 随机选择方向
-        const selected = [];
-        while (selected.length < Math.min(this.state.splitDirections, 8)) {
-            const dir = directions[Math.floor(Math.random() * directions.length)];
-            if (!selected.some(d => d[0]===dir[0] && d[1]===dir[1])) {
-                selected.push(dir);
+        // 根据分裂方向选择方向
+        let selectedDirections = directions;
+        if (this.state.splitDirections < 8) {
+            selectedDirections = [];
+            while (selectedDirections.length < this.state.splitDirections) {
+                const dir = directions[Math.floor(Math.random() * directions.length)];
+                if (!selectedDirections.some(d => d[0]===dir[0] && d[1]===dir[1])) {
+                    selectedDirections.push(dir);
+                }
             }
         }
         
+        // 如果是一次性满级炮台，使用最大分裂
+        const splitCount = this.state.oneTimeMaxSplit ? 5 : this.state.splitCount;
+        
         // 发射弹药 - 使用与普通弹药相同的速度
-        selected.forEach(dir => {
-            for (let j = 0; j < this.state.splitCount; j++) {
+        selectedDirections.forEach(dir => {
+            for (let j = 0; j < splitCount; j++) {
                 // 爆炸产生的弹药有白色概率
-                const randomColor = Math.random() < this.state.whiteChance ? 'white' : 
-                                   this.COLORS[Math.floor(Math.random() * 7)];
+                const whiteChance = this.state.whiteChance + this.state.oneTimeWhiteChance;
+                let randomColor;
+                
+                // 检查是否允许白色弹珠
+                if (whiteChance > 0 && Math.random() < whiteChance) {
+                    randomColor = 'white';
+                } else {
+                    // 从关卡允许的颜色中随机选择
+                    randomColor = this.getRandomProjectileColor(this.state.currentProjectileColors);
+                }
                 
                 // 创建分裂弹药 - 使用与普通弹药相同的速度
                 this.createExplosionProjectile(
                     x * this.CELL_SIZE + this.CELL_SIZE/2,
                     y * this.CELL_SIZE + this.CELL_SIZE/2,
-                    x * this.CELL_SIZE + this.CELL_SIZE/2 + dir[0] * 100, // 恢复原来的飞行距离
-                    y * this.CELL_SIZE + this.CELL_SIZE/2 + dir[1] * 100, // 恢复原来的飞行距离
+                    x * this.CELL_SIZE + this.CELL_SIZE/2 + dir[0] * 100,
+                    y * this.CELL_SIZE + this.CELL_SIZE/2 + dir[1] * 100,
                     randomColor
                 );
             }
@@ -1129,7 +1383,7 @@ class GameCore {
         const dx = tx - sx;
         const dy = ty - sy;
         const dist = Math.sqrt(dx*dx + dy*dy);
-        const speed = this.EXPLOSION_PROJECTILE_SPEED; // 使用与普通弹药相同的速度
+        const speed = this.EXPLOSION_PROJECTILE_SPEED;
         
         this.state.projectiles.push({
             element: proj,
@@ -1138,7 +1392,7 @@ class GameCore {
             vx: dx/dist * speed,
             vy: dy/dist * speed,
             color: color,
-            life: 180, // 与普通弹药寿命相同
+            life: 180,
             maxLife: 180,
             createdAt: Date.now(),
             fading: false,
@@ -1267,7 +1521,7 @@ class GameCore {
         // 停止游戏状态
         this.state.active = false;
         this.stopAutoShoot();
-        this.stopGameLoop(); // 停止游戏循环
+        this.stopGameLoop();
         
         // 清理所有弹药和特效
         this.cleanupGameElements();
@@ -1277,24 +1531,50 @@ class GameCore {
             // 计算本关收入
             const levelScore = this.state.score;
             const chestBonus = this.state.hasTreasure ? 200 : 0;
-            const baseMoney = Math.floor(levelScore * 0.7);
+            
+            // 应用弹药转换积分道具
+            let finalScore = levelScore;
+            if (this.state.ammoToScore) {
+                const ammoBonus = this.state.ammo * 5;
+                finalScore += ammoBonus;
+                console.log(`弹药转换积分: ${ammoBonus}分`);
+            }
+            
+            // 应用金钱转换积分道具
+            if (this.state.moneyToScore && this.state.money > 1000) {
+                const moneyBonus = this.state.money - 1000;
+                finalScore += moneyBonus;
+                this.state.money = 1000; // 只保留1000金币
+                console.log(`金钱转换积分: ${moneyBonus}分`);
+            }
+            
+            const baseMoney = Math.floor(finalScore * 0.7);
             const totalMoney = Math.floor((baseMoney + chestBonus) * this.state.moneyMultiplier);
             
             // 增加金币
             this.state.money += totalMoney;
             
-            // 检查是否满足积分要求
-            const levelReq = levelSystem.getCurrentLevel().scoreReq;
-            const requirementMet = levelReq === 0 || this.state.score >= levelReq;
+            // 检查是否满足积分要求（考虑一次性减半道具）
+            let levelReq = levelSystem.getCurrentLevel().scoreReq;
+            if (this.state.oneTimeHalfScoreReq) {
+                levelReq = Math.floor(levelReq / 2);
+                console.log(`积分要求减半: ${levelReq}分`);
+            }
+            
+            // 检查自动通关道具
+            const requirementMet = this.state.oneTimeAutoWin || levelReq === 0 || finalScore >= levelReq;
             
             // 延迟显示结算界面，确保清理完成
             setTimeout(() => {
-                console.log('显示结算界面，分数:', levelScore, '要求分数:', levelReq);
+                console.log('显示结算界面，分数:', finalScore, '要求分数:', levelReq);
                 // 显示结算界面
                 if (typeof window.showResultScreen === 'function') {
-                    window.showResultScreen(levelScore, chestBonus, totalMoney, levelReq, requirementMet);
+                    window.showResultScreen(finalScore, chestBonus, totalMoney, levelReq, requirementMet);
                 }
-            }, 100); // 100ms延迟确保清理完成
+                
+                // 清除一次性道具效果（保留到下一关开始前）
+                shopSystem.resetOneTimeItems();
+            }, 100);
         });
     }
     
@@ -1305,7 +1585,7 @@ class GameCore {
         // 停止游戏状态
         this.state.active = false;
         this.stopAutoShoot();
-        this.stopGameLoop(); // 停止游戏循环
+        this.stopGameLoop();
         
         // 清理所有弹药和特效
         this.cleanupGameElements();
@@ -1316,7 +1596,7 @@ class GameCore {
             if (reason === 'bomb') {
                 audioManager.playExplosion();
             } else if (reason === 'ammo') {
-                audioManager.playFail(); // 或者可以创建一个专门的弹药耗尽音效
+                audioManager.playFail();
             } else {
                 audioManager.playFail();
             }
@@ -1328,7 +1608,10 @@ class GameCore {
                 if (typeof window.showFailScreen === 'function') {
                     window.showFailScreen(reason, this.state.level, this.state.money, this.state.combo);
                 }
-            }, 100); // 100ms延迟确保清理完成
+                
+                // 清除一次性道具效果
+                shopSystem.resetOneTimeItems();
+            }, 100);
         });
     }
     
@@ -1351,7 +1634,7 @@ class GameCore {
     pauseGame() {
         this.state.active = false;
         this.stopAutoShoot();
-        this.stopGameLoop(); // 停止游戏循环
+        this.stopGameLoop();
     }
     
     // 继续游戏
@@ -1367,8 +1650,10 @@ class GameCore {
         // 停止游戏循环
         this.stopGameLoop();
         
-        // 重置游戏状态，保留金钱
+        // 重置游戏状态，保留金钱和道具效果
+        const money = this.state.money;
         this.resetGameState(false);
+        this.state.money = money;
         
         // 继续游戏
         this.state.active = true;

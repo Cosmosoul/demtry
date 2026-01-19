@@ -1522,3 +1522,43 @@ input:checked + .slider:before {
         max-height: 70vh;
     }
 }
+
+/* 数字方块样式 */
+.cell.color.number {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.number-text {
+    font-weight: bold;
+    font-size: 16px;
+    color: #000;
+    text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+    z-index: 2;
+}
+
+/* 商店稀有度显示 */
+.shop-item-rarity {
+    color: #ffcc00;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* 数字方块的特殊样式 */
+.cell.color.number.red .number-text { color: #000; }
+.cell.color.number.orange .number-text { color: #000; }
+.cell.color.number.yellow .number-text { color: #000; }
+.cell.color.number.green .number-text { color: #000; }
+.cell.color.number.cyan .number-text { color: #000; }
+.cell.color.number.blue .number-text { color: #fff; }
+.cell.color.number.purple .number-text { color: #fff; }
+
+/* 移动端数字方块适配 */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    .number-text {
+        font-size: 12px;
+    }
+}

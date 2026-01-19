@@ -354,36 +354,6 @@ class GameCore {
         }
     }
     
-    // 显示道具效果提示
-    showItemEffectMessage(itemName) {
-        const message = document.createElement('div');
-        message.className = 'item-effect-message';
-        message.innerHTML = `<i class="fas fa-check-circle"></i> ${itemName} 效果已激活！`;
-        message.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: #0ff;
-            padding: 15px 30px;
-            border-radius: 10px;
-            border: 2px solid #0ff;
-            z-index: 1000;
-            font-size: 20px;
-            font-weight: bold;
-            box-shadow: 0 0 20px #0ff;
-            animation: fadeInOut 2s ease-in-out;
-        `;
-        
-        document.body.appendChild(message);
-        
-        // 3秒后移除
-        setTimeout(() => {
-            message.remove();
-        }, 2000);
-    }
-    
     // 创建网格
     createGrid() {
         const grid = this.elements.grid;
@@ -416,6 +386,36 @@ class GameCore {
         const launcherCell = this.state.maze[launcherY][launcherX].element;
         launcherCell.className = 'cell launcher';
         this.state.maze[launcherY][launcherX].type = 'launcher';
+    }
+
+ // 显示道具效果提示
+    showItemEffectMessage(itemName) {
+        const message = document.createElement('div');
+        message.className = 'item-effect-message';
+        message.innerHTML = `<i class="fas fa-check-circle"></i> ${itemName} 效果已激活！`;
+        message.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #0ff;
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid #0ff;
+            z-index: 1000;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 0 20px #0ff;
+            animation: fadeInOut 2s ease-in-out;
+        `;
+        
+        document.body.appendChild(message);
+        
+        // 3秒后移除
+        setTimeout(() => {
+            message.remove();
+        }, 2000);
     }
     
     // 添加单元格事件 - 优化手机触摸体验

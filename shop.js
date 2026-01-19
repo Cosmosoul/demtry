@@ -9,14 +9,14 @@ class ShopSystem {
             { id: '003', name: '大型弹药包', description: '购买后本局每关弹药增加100枚', price: 500, rarity: 2, unlockAt: 3, type: 'ammo' },
             
             // 生命药水
-            { id: '004', name: '小型生命药水', description: '购买后本局每关第一次触发炸弹不会受到伤害', price: 200, rarity: 2, unlockAt: 1, type: 'bombImmunity',maxOne: true },
-            { id: '005', name: '中型生命药水', description: '购买后本局每关前两次触发炸弹不会受到伤害', price: 500, rarity: 2, unlockAt: 1, type: 'bombImmunity',maxOne: true },
-            { id: '006', name: '大型生命药水', description: '购买后本局每关前三次触发炸弹不会受到伤害', price: 700, rarity: 3, unlockAt: 3, type: 'bombImmunity',maxOne: true },
+            { id: '004', name: '小型生命药水', description: '购买后本局每关第一次触发炸弹不会受到伤害（二次购买无效）', price: 200, rarity: 2, unlockAt: 1, type: 'bombImmunity', maxOne: true },
+            { id: '005', name: '中型生命药水', description: '购买后本局每关前两次触发炸弹不会受到伤害（二次购买无效）', price: 500, rarity: 2, unlockAt: 1, type: 'bombImmunity', maxOne: true },
+            { id: '006', name: '大型生命药水', description: '购买后本局每关前三次触发炸弹不会受到伤害（二次购买无效）', price: 700, rarity: 3, unlockAt: 3, type: 'bombImmunity', maxOne: true },
             
             // 白色子弹相关
-            { id: '007', name: '白色！', description: '购买后本局每次发射随机子弹为白色子弹概率重置为1/10', price: 1000, rarity: 4, unlockAt: 9, type: 'whiteChance', maxOne: true },
-            { id: '008', name: '更多的白色！', description: '购买后本局每次发射随机子弹为白色子弹概率重置为1/8', price: 1000, rarity: 5, unlockAt: 9, type: 'whiteChance', maxOne: true },
-            { id: '009', name: '更强的白色！', description: '购买后本局白色子弹可以使全部颜色触发爆炸分裂', price: 2000, rarity: 5, unlockAt: 12, type: 'whitePower', maxOne: true },
+            { id: '007', name: '白色！', description: '购买后本局每次发射随机子弹为白色子弹概率重置为1/10（二次购买无效）', price: 1000, rarity: 4, unlockAt: 9, type: 'whiteChance', maxOne: true },
+            { id: '008', name: '更多的白色！', description: '购买后本局每次发射随机子弹为白色子弹概率重置为1/8（二次购买无效）', price: 1000, rarity: 5, unlockAt: 9, type: 'whiteChance', maxOne: true },
+            { id: '009', name: '更强的白色！', description: '购买后本局白色子弹可以使全部颜色触发爆炸分裂（二次购买无效）', price: 2000, rarity: 5, unlockAt: 12, type: 'whitePower', maxOne: true },
             
             // 分裂相关
             { id: '010', name: '分裂！', description: '购买后本局每次触发爆炸分裂时产生的粒子每个方向数量+1（上限为5）', price: 500, rarity: 1, unlockAt: 9, type: 'splitCount', maxLevel: 5 },
@@ -30,9 +30,9 @@ class ShopSystem {
             // 经济类
             { id: '015', name: '更多积分！', description: '购买后本局每关获得积分在结束结算时额外增加20%（上限为增加200%）', price: 700, rarity: 3, unlockAt: 12, type: 'scoreMultiplier', maxLevel: 10 },
             { id: '016', name: '更多钱！', description: '购买后本局每关胜利后获得钱额外增加10%（上限为增加200%）', price: 500, rarity: 2, unlockAt: 12, type: 'moneyMultiplier', maxLevel: 20 },
-            { id: '017', name: '连击！', description: '消除时每次连击额外获得1积分', price: 700, rarity: 3, unlockAt: 12, type: 'comboBonus', maxOne: true },
-            { id: '018', name: '冗余！', description: '玩家到达终点旗帜时剩余的弹药数量*5转换为本关积分，然后再判定本关是否达到积分要求', price: 500, rarity: 3, unlockAt: 9, type: 'ammoToScore', maxOne: true },
-            { id: '019', name: '富有！', description: '本局之后每关结束时若玩家剩余金额大于1000，超出部分全部等量转换为积分，然后再判定本关是否达到积分要求', price: 1000, rarity: 3, unlockAt: 15, type: 'moneyToScore', maxOne: true },
+            { id: '017', name: '连击！', description: '消除时每次连击额外获得1积分（二次购买无效）', price: 700, rarity: 3, unlockAt: 12, type: 'comboBonus', maxOne: true },
+            { id: '018', name: '冗余！', description: '玩家到达终点旗帜时剩余的弹药数量*5转换为本关积分，然后再判定本关是否达到积分要求（二次购买无效）', price: 500, rarity: 3, unlockAt: 9, type: 'ammoToScore', maxOne: true },
+            { id: '019', name: '富有！', description: '本局之后每关结束时若玩家剩余金额大于1000，超出部分全部等量转换为积分，然后再判定本关是否达到积分要求（二次购买无效）', price: 1000, rarity: 3, unlockAt: 15, type: 'moneyToScore', maxOne: true },
             { id: '020', name: '收益！', description: '消除时每次连击额外获得5元', price: 1000, rarity: 3, unlockAt: 12, type: 'comboMoney' },
             
             // 一次性道具
@@ -62,17 +62,24 @@ class ShopSystem {
         
         // 已购买的道具（本局生效）
         this.purchasedItems = [];
-        this.oneTimeItems = []; // 一次性道具，只在下一关生效
+        this.purchasedItemIds = new Set(); // 用于快速检查
+        
+        // 已购买的一次性道具（本局生效）
+        this.oneTimeItems = [];
         
         // 玩家已解锁的道具（跨局）
         this.unlockedItems = new Set(['001', '004', '007', '021']); // 初始解锁几个基础道具
+        
+        // 当前关卡已购买的标志
+        this.currentLevelPurchased = false;
     }
     
-    // 生成商店物品（随机抽取3个）
+    // 生成商店物品（随机抽取2个）
     generateShopItems() {
         this.currentItems = [];
         this.rerollCount = 0;
         this.rerollCost = 150;
+        this.currentLevelPurchased = false;
         
         // 过滤已解锁的道具
         const availableItems = this.items.filter(item => 
@@ -85,12 +92,12 @@ class ShopSystem {
             return;
         }
         
-        // 按稀有度概率抽取
-        for (let i = 0; i < 3; i++) {
+        // 按稀有度概率抽取2个
+        for (let i = 0; i < 2; i++) {
             let selectedItem = null;
             let attempts = 0;
             
-            while (!selectedItem && attempts < 100) {
+            while (!selectedItem && attempts < 200) {
                 const randomItem = availableItems[Math.floor(Math.random() * availableItems.length)];
                 const rarityRoll = Math.random() * 100;
                 
@@ -106,18 +113,26 @@ class ShopSystem {
                 }
                 
                 if (rarityRoll <= rarityChance) {
-                    // 检查是否已抽取（避免重复）
-                    if (!this.currentItems.some(item => item.id === randomItem.id)) {
-                        selectedItem = randomItem;
+                    // 检查是否应该出现在商店中
+                    if (this.shouldItemAppear(randomItem)) {
+                        // 检查是否已抽取（避免重复）
+                        if (!this.currentItems.some(item => item.id === randomItem.id)) {
+                            selectedItem = randomItem;
+                        }
                     }
                 }
                 
                 attempts++;
             }
             
-            // 如果尝试多次未找到，取第一个可用物品
+            // 如果尝试多次未找到，从可用物品中取一个
             if (!selectedItem && availableItems.length > 0) {
-                selectedItem = availableItems[0];
+                for (const item of availableItems) {
+                    if (this.shouldItemAppear(item) && !this.currentItems.some(i => i.id === item.id)) {
+                        selectedItem = item;
+                        break;
+                    }
+                }
             }
             
             if (selectedItem) {
@@ -126,8 +141,37 @@ class ShopSystem {
         }
     }
     
+    // 检查道具是否应该出现在商店中
+    shouldItemAppear(item) {
+        // 一次性道具可以无限次出现在商店中
+        if (item.oneTime) {
+            return true;
+        }
+        
+        // 检查是否已经购买过（对于不可二次购买的道具）
+        if (item.maxOne && this.purchasedItemIds.has(item.id)) {
+            return false;
+        }
+        
+        // 检查是否达到上限
+        if (item.maxLevel) {
+            const currentLevel = this.getEffectLevel(item.type);
+            if (currentLevel >= item.maxLevel) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     // 重抽商店物品
     rerollShopItems() {
+        // 检查是否已经购买过本关道具
+        if (this.currentLevelPurchased) {
+            console.log("本关已经购买过道具，不能重抽");
+            return;
+        }
+        
         this.rerollCount++;
         this.generateShopItems();
         this.rerollCost = 150 + (this.rerollCount * 50);
@@ -135,6 +179,11 @@ class ShopSystem {
     
     // 购买道具
     buyItem(itemId, playerMoney) {
+        // 检查是否已经购买过本关道具
+        if (this.currentLevelPurchased) {
+            return { success: false, message: "本关已经购买过道具" };
+        }
+        
         const item = this.currentItems.find(item => item.id === itemId);
         
         if (!item) {
@@ -147,11 +196,8 @@ class ShopSystem {
         }
         
         // 检查是否已达到上限（对于有上限的道具）
-        if (item.maxOne) {
-            const alreadyPurchased = this.purchasedItems.some(p => p.type === item.type);
-            if (alreadyPurchased) {
-                return { success: false, message: "此道具只能购买一次" };
-            }
+        if (item.maxOne && this.purchasedItemIds.has(item.id)) {
+            return { success: false, message: "此道具只能购买一次" };
         }
         
         if (item.maxLevel) {
@@ -166,10 +212,11 @@ class ShopSystem {
             this.oneTimeItems.push(item);
         } else {
             this.purchasedItems.push(item);
+            this.purchasedItemIds.add(item.id);
         }
         
-        // 播放购买音效
-        audioManager.playPurchase();
+        // 标记本关已购买
+        this.currentLevelPurchased = true;
         
         return { 
             success: true, 
@@ -293,9 +340,11 @@ class ShopSystem {
     // 重置本局道具
     resetGame() {
         this.purchasedItems = [];
+        this.purchasedItemIds.clear();
         this.oneTimeItems = [];
         this.rerollCount = 0;
         this.rerollCost = 150;
+        this.currentLevelPurchased = false;
     }
     
     // 重置一次性道具（每关后清除）
@@ -332,6 +381,20 @@ class ShopSystem {
         // 清空当前物品
         shopItemsElement.innerHTML = '';
         
+        // 检查是否已经购买过本关道具
+        const canReroll = !this.currentLevelPurchased;
+        
+        // 更新重抽按钮状态
+        const rerollBtn = document.getElementById('rerollBtn');
+        rerollBtn.disabled = !canReroll || playerMoney < this.rerollCost;
+        if (rerollBtn.disabled) {
+            rerollBtn.style.opacity = '0.6';
+            rerollBtn.style.cursor = 'not-allowed';
+        } else {
+            rerollBtn.style.opacity = '1';
+            rerollBtn.style.cursor = 'pointer';
+        }
+        
         // 生成商店物品HTML
         this.currentItems.forEach(item => {
             const itemElement = document.createElement('div');
@@ -339,18 +402,16 @@ class ShopSystem {
             
             // 检查是否可购买
             const canAfford = playerMoney >= item.price;
-            let canBuy = canAfford;
+            let canBuy = canAfford && !this.currentLevelPurchased;
             let reason = '';
             
-            if (item.maxOne) {
-                const alreadyPurchased = this.purchasedItems.some(p => p.type === item.type);
-                if (alreadyPurchased) {
-                    canBuy = false;
-                    reason = '只能购买一次';
-                }
-            }
-            
-            if (item.maxLevel) {
+            if (this.currentLevelPurchased) {
+                canBuy = false;
+                reason = '本关已购买道具';
+            } else if (item.maxOne && this.purchasedItemIds.has(item.id)) {
+                canBuy = false;
+                reason = '只能购买一次';
+            } else if (item.maxLevel) {
                 const currentLevel = this.getEffectLevel(item.type);
                 if (currentLevel >= item.maxLevel) {
                     canBuy = false;

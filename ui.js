@@ -289,6 +289,12 @@ class UIManager {
             return;
         }
         
+        // 检查是否已经购买过本关道具
+        if (shopSystem.currentLevelPurchased) {
+            alert('本关已经购买过道具，不能重抽！');
+            return;
+        }
+        
         // 扣除金币
         gameCore.state.money -= shopSystem.rerollCost;
         gameCore.updateUI();
@@ -327,6 +333,9 @@ class UIManager {
         
         // 解锁新道具
         shopSystem.unlockNewItems(levelSystem.currentLevel);
+        
+        // 重置一次性道具（上一关的）
+        shopSystem.resetOneTimeItems();
         
         // 重置游戏状态，保留金钱和永久道具效果
         const money = gameCore.state.money;
@@ -439,7 +448,7 @@ window.showFailScreen = function(reason, level, money, combo) {
     uiManager.showFailScreen(reason, level, money, combo);
 };
 
-// 在 ui.js 中修改 onShopItemBuy 函数
+// 修改后的购买处理函数
 window.onShopItemBuy = function(itemId) {
     console.log('购买道具:', itemId);
     
@@ -450,24 +459,58 @@ window.onShopItemBuy = function(itemId) {
         // 扣除金币
         gameCore.state.money -= result.price;
         
-        // 更新UI显示弹药数量
-        gameCore.updateUI();
+        // 播放购买音效
+        audioManager.playPurchase();
+        
+        // 隐藏商店界面
+        document.getElementById('shopScreen').style.display = 'none';
         
         // 显示道具效果提示
         if (result.item && typeof gameCore.showItemEffectMessage === 'function') {
             gameCore.showItemEffectMessage(result.item.name);
         }
         
-        // 隐藏商店界面
-        document.getElementById('shopScreen').style.display = 'none';
-        
-        // 播放购买音效
-        audioManager.playPurchase();
-        
-        // 进入下一关
+        // 先进入下一关，再显示道具效果
         setTimeout(() => {
-            uiManager.nextLevel();
-        }, 1500); // 给玩家时间看效果提示
+            // 进入下一关（先更新棋盘）
+            const nextLevelResult = levelSystem.nextLevel();
+            
+            if (nextLevelResult === 'completion') {
+                console.log('显示通关界面');
+                document.getElementById('completionScreen').style.display = 'flex';
+                return;
+            }
+            
+            // 解锁新道具
+            shopSystem.unlockNewItems(levelSystem.currentLevel);
+            
+            // 重置一次性道具（上一关的）
+            shopSystem.resetOneTimeItems();
+            
+            // 重置游戏状态，保留金钱和永久道具效果
+            const money = gameCore.state.money;
+            gameCore.resetGameState(false);
+            gameCore.state.money = money;
+            
+            // 确保游戏处于活跃状态
+            gameCore.state.active = true;
+            
+            // 启动游戏循环
+            if (!gameCore.isGameLoopRunning) {
+                console.log('启动游戏循环');
+                gameCore.gameLoop();
+            }
+            
+            // 显示游戏界面
+            uiManager.showScreen('gameScreen');
+            
+            // 更新UI显示
+            gameCore.updateUI();
+            
+            // 播放游戏背景音乐
+            audioManager.playBGM('game');
+            
+        }, 1000); // 1秒延迟，让玩家看到道具效果提示
         
     } else {
         alert(result.message);
